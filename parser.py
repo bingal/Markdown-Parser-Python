@@ -50,7 +50,7 @@ var x = 1
 var y = 2
 console.info(x+y)
 ```\'\'\')
-Markdown([Paragraph([Code('```js\n    var x = 1;\n    var y = 2;\n    console.info(x+y);\n    ```')])])
+Markdown([Paragraph([Code('```js\nvar x = 1\nvar y = 2\n\n# debug\nconsole.info(x+y)\n```')])])
 '''
 
 import re
@@ -272,10 +272,13 @@ def output_block(block, depth=0):
 
 if __name__ == '__main__':
     print(parse_markdown('''```js
-    var x = 1;
-    var y = 2;
-    console.info(x+y);
-    ```'''))
+var x = 1
+var y = 2
+
+
+# debug
+console.info(x+y)
+```'''))
     doctest.testmod()
     with open('out.md', 'w') as fo:
         with open('test.md', 'r') as f:

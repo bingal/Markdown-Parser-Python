@@ -51,7 +51,7 @@ var y = 2
 # debug
 console.info(x+y)
 ```''')
-Markdown([Paragraph([Code('```js\n    var x = 1;\n    var y = 2;\n    console.info(x+y);\n    ```')])])
+Markdown([Paragraph([Code('```js\nvar x = 1\nvar y = 2\n\n# debug\nconsole.info(x+y)\n```')])])
 
 ```
 
