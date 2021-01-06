@@ -42,6 +42,17 @@ Markdown([Paragraph([Header(1,[Text('header1')]), Header(2,[Text('header2')])]),
 
 >>> parse_markdown('hello ##this is not *header* and **header**')
 Markdown([Paragraph([Text('hello ##this is not '), Emphasis('header'), Text(' and '), Bold('header'), Text('')])])
+
+>>> parse_markdown('''```js
+var x = 1
+var y = 2
+
+
+# debug
+console.info(x+y)
+```''')
+Markdown([Paragraph([Code('```js\n    var x = 1;\n    var y = 2;\n    console.info(x+y);\n    ```')])])
+
 ```
 
 

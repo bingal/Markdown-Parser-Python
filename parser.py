@@ -44,7 +44,15 @@ Markdown([Paragraph([Header(1,[Text('header1')]), Header(2,[Text('header2')])]),
 
 >>> parse_markdown('hello ##this is not *header* and **header**')
 Markdown([Paragraph([Text('hello ##this is not '), Emphasis('header'), Text(' and '), Bold('header'), Text('')])])
+
+>>> parse_markdown(\'\'\'```js
+var x = 1
+var y = 2
+console.info(x+y)
+```\'\'\')
+Markdown([Paragraph([Code('```js\n    var x = 1;\n    var y = 2;\n    console.info(x+y);\n    ```')])])
 '''
+
 import re
 import doctest
 
@@ -263,9 +271,14 @@ def output_block(block, depth=0):
 
 
 if __name__ == '__main__':
+    print(parse_markdown('''```js
+    var x = 1;
+    var y = 2;
+    console.info(x+y);
+    ```'''))
     doctest.testmod()
     with open('out.md', 'w') as fo:
-        with open('installation.md', 'r') as f:
+        with open('test.md', 'r') as f:
             string = f.read()
             for block in parse_markdown(string).blocks:
                 fo.write(''.join(output_block(block, 0)))
