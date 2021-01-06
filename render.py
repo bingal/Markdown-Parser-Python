@@ -85,6 +85,6 @@ if __name__ == '__main__':
             with open('%s.html' % filename.split('.')[0], 'w') as html_f:
                 html_f.write(render(markdown))
     except IndexError:
-        print "Please specify the markdown file to be converted."
+        print("Please specify the markdown file to be converted.")
     except IOError:
-        print "File does not exist."
+        print("File does not exist.")

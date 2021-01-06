@@ -69,21 +69,21 @@ def parse_block(block):
     if not isinstance(block, str):
         for header in block.items:
             parts = re.split('(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)', header.items)
-            header.items = map(parse_part, parts)
+            header.items = list(map(parse_part, parts))
         return block
     # List items begins with ' - ' or ' * '
     match = re.match(r'^[-|\*]\s+', block)
     if match is not None:
         # '^' should match at the beginning of the string and at the beginning of each line
         items = [item.strip() for item in re.split(r'^[-|\*]\s+', block, flags=re.M)[1:]]
-        lists = List(map(parse_paragraph, items))
+        lists = List(list(map(parse_paragraph, items)))
         for item in lists.items:
             match = re.search(r'\s+[-|\*]\s+', item.items[0].text)
             if match is not None:
                 inner_items = [inner_item.strip() for inner_item in re.split(r'\s+[-|\*]\s+', item.items[0].text, flags=re.M)]
                 item.items = list()
                 item.items.append(parse_paragraph(inner_items[0]))
-                inner_lists = List(map(parse_paragraph, inner_items[1:]))
+                inner_lists = List(list(map(parse_paragraph, inner_items[1:])))
                 item.items.append(inner_lists)
         return lists
     return parse_paragraph(block)
@@ -91,7 +91,7 @@ def parse_block(block):
 
 def parse_paragraph(block):
     parts = re.split('(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)', block)  # split out Emphasis and Bold
-    return Paragraph(map(parse_part, parts))
+    return Paragraph(list(map(parse_part, parts)))
 
 
 def parse_part(string):
@@ -110,7 +110,7 @@ def parse_header(string):
     matches = re.findall(r'^#{1,6}', string, flags=re.M)
     header_items = re.split(r'^#{1,6}', string, flags=re.M)[1:]
     if len(matches) > 0:
-        return Paragraph(map(lambda (match, items): Header(len(match), items.strip()), zip(matches, header_items)))
+        return Paragraph(list(map(lambda match_items: Header(len(match_items[0]), match_items[1].strip()), zip(matches, header_items))))
     return string
 
 
@@ -183,4 +183,4 @@ if __name__ == '__main__':
     with open('test.md', 'r') as f:
         string = f.read()
         for block in parse_markdown(string).blocks:
-            print block
+            print(block)
