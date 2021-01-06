@@ -47,7 +47,6 @@ Markdown([Paragraph([Text('hello ##this is not '), Emphasis('header'), Text(' an
 '''
 import re
 import doctest
-# 
 
 def parse_markdown(string):
     return Markdown([parse_block(block) for block in split_into_blocks(string)])
@@ -58,12 +57,35 @@ def split_into_blocks(string):
 
     >>> split_into_blocks('The first block.\\n\\n\\nThe second block.')
     ['The first block.', 'The second block.']'''
-    return re.split(r'\n{2,}', string)
+    _blocks =  re.split(r'\n{2,}', string)
+    blocks = []
+    tmp = []
+    closed = True
+    for block in _blocks:
+        if closed:
+            tmp.clear()
+        # code start
+        tmp.append(block)
+        if closed:
+            if re.match('```[\s\S]*[^`]$', block):
+                closed = False
+        # code end
+        else:
+            if re.match('[\s\S]*```$', block):
+                closed = True
+        if closed:
+            blocks.append('\n\n'.join(tmp))
+    return blocks
 
 
 def parse_block(block):
     '''Handle block that contains list items
     '''
+    # parse code block
+    match = re.match(r'^```', block)
+    if match:
+        return Paragraph([Code(block)])
+    
     # extract headers before list
     block = parse_header(block)
     if not isinstance(block, str):
@@ -138,6 +160,13 @@ class List(object):
         return 'List({!r})'.format(self.items)
 
 
+class Code(object):
+    def __init__(self, text):
+        self.text = text
+
+    def __repr__(self):
+        return 'Code({!r})'.format(self.text)
+
 class Text(object):
     def __init__(self, text):
         self.text = text
@@ -177,10 +206,67 @@ INLINE_ELEMENTS = [
 ]
 
 
+def print_block(block, depth=0):
+    if type(block) == Paragraph:
+        print('======Paragraph start======')
+        for sub_block in block.items:
+            print_block(sub_block, depth+1)
+        print('======Paragraph end======\n')
+    elif type(block) == List:
+        print('-----List start-----')
+        for sub_block in block.items:
+            print_block(sub_block, depth+1)
+        print('-----List end-----\n')
+    else:
+        print('{} {}'.format('-'*depth, block))
+
+
+def output_block(block, depth=0):
+    result = []
+    if type(block) == Paragraph:
+        for sub_block in block.items:
+            result.extend(output_block(sub_block, depth+1))
+        result.append('\n')
+    elif type(block) == List:
+        for sub_block in block.items:
+            result.append('- ')
+            result.extend(output_block(sub_block, depth+1))
+        result.append('\n\n')
+    elif type(block) == Header:
+        result.append('#'*block.level + ' ')
+        for sub_block in block.items:
+            result.extend(output_block(sub_block, depth+1))
+        result.append('\n\n')
+    elif type(block) == Emphasis:
+        result.append('*{}*'.format(block))
+    elif type(block) == Bold:
+        result.append('**{}**'.format(block))
+    elif type(block) == Code:
+        result.append('\n')
+        result.append(block.text)
+    elif type(block) == Text:
+        if block.text.startswith('>'):
+            result.append('\n')
+        result.append(block.text)
+        if depth==0 and block.text.endswith('\n---'):
+            result.append('\n\n')
+        if depth == 0 and block.text.endswith('\n```'):
+            result.append('\n\n')
+        # fanyi
+        if not (block.text.startswith('---') or block.text.startswith('>')):
+            print(block.text)
+            print('---------------------\n')
+    if depth == 0:
+        result.append('\n')
+
+    return result
+
+
 if __name__ == '__main__':
     doctest.testmod()
-
-    with open('test.md', 'r') as f:
-        string = f.read()
-        for block in parse_markdown(string).blocks:
-            print(block)
+    with open('out.md', 'w') as fo:
+        with open('installation.md', 'r') as f:
+            string = f.read()
+            for block in parse_markdown(string).blocks:
+                fo.write(''.join(output_block(block, 0)))
+                print_block(block)
