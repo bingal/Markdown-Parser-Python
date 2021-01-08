@@ -56,6 +56,7 @@ Markdown([Paragraph([Code('```js\nvar x = 1\nvar y = 2\n\n# debug\nconsole.info(
 import re
 import doctest
 
+
 def parse_markdown(string):
     return Markdown([parse_block(block) for block in split_into_blocks(string)])
 
@@ -65,7 +66,7 @@ def split_into_blocks(string):
 
     >>> split_into_blocks('The first block.\\n\\n\\nThe second block.')
     ['The first block.', 'The second block.']'''
-    _blocks =  re.split(r'\n{2,}', string)
+    _blocks = re.split(r'\n{2,}', string)
     blocks = []
     tmp = []
     closed = True
@@ -93,24 +94,27 @@ def parse_block(block):
     match = re.match(r'^```', block)
     if match:
         return Paragraph([Code(block)])
-    
+
     # extract headers before list
     block = parse_header(block)
     if not isinstance(block, str):
         for header in block.items:
-            parts = re.split('(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)', header.items)
+            parts = re.split(
+                '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)', header.items)
             header.items = list(map(parse_part, parts))
         return block
     # List items begins with ' - ' or ' * '
     match = re.match(r'^[-|\*]\s+', block)
     if match is not None:
         # '^' should match at the beginning of the string and at the beginning of each line
-        items = [item.strip() for item in re.split(r'^[-|\*]\s+', block, flags=re.M)[1:]]
+        items = [item.strip() for item in re.split(
+            r'^[-|\*]\s+', block, flags=re.M)[1:]]
         lists = List(list(map(parse_paragraph, items)))
         for item in lists.items:
             match = re.search(r'\s+[-|\*]\s+', item.items[0].text)
             if match is not None:
-                inner_items = [inner_item.strip() for inner_item in re.split(r'\s+[-|\*]\s+', item.items[0].text, flags=re.M)]
+                inner_items = [inner_item.strip() for inner_item in re.split(
+                    r'\s+[-|\*]\s+', item.items[0].text, flags=re.M)]
                 item.items = list()
                 item.items.append(parse_paragraph(inner_items[0]))
                 inner_lists = List(list(map(parse_paragraph, inner_items[1:])))
@@ -120,7 +124,8 @@ def parse_block(block):
 
 
 def parse_paragraph(block):
-    parts = re.split('(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)', block)  # split out Emphasis and Bold
+    # split out Emphasis and Bold
+    parts = re.split('(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)', block)
     return Paragraph(list(map(parse_part, parts)))
 
 
@@ -174,6 +179,7 @@ class Code(object):
 
     def __repr__(self):
         return 'Code({!r})'.format(self.text)
+
 
 class Text(object):
     def __init__(self, text):
@@ -256,12 +262,12 @@ def output_block(block, depth=0):
         if block.text.startswith('>'):
             result.append('\n')
         result.append(block.text)
-        if depth==0 and block.text.endswith('\n---'):
+        if depth == 0 and block.text.endswith('\n---'):
             result.append('\n\n')
         if depth == 0 and block.text.endswith('\n```'):
             result.append('\n\n')
         # fanyi
-        if not (block.text.startswith('---') or block.text.startswith('>')):
+        if not (block.text.startswith('---') or block.text.startswith('>')) and block.text.strip():
             print(block.text)
             print('---------------------\n')
     if depth == 0:
@@ -271,18 +277,8 @@ def output_block(block, depth=0):
 
 
 if __name__ == '__main__':
-    print(parse_markdown('''```js
-var x = 1
-var y = 2
-
-
-# debug
-console.info(x+y)
-```'''))
-    doctest.testmod()
-    with open('out.md', 'w') as fo:
-        with open('test.md', 'r') as f:
-            string = f.read()
-            for block in parse_markdown(string).blocks:
-                fo.write(''.join(output_block(block, 0)))
-                print_block(block)
+    with open('out.md', 'w') as fo, open('test.md', 'r') as f:
+        string = f.read()
+        for block in parse_markdown(string).blocks:
+            fo.write(''.join(output_block(block, 0)))
+            # print_block(block)
